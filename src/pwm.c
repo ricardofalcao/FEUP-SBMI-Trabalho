@@ -2,7 +2,7 @@
 #include "util.h"
 #include <avr/io.h>
 
-void pwmInit(uint8_t pwm, uint8_t prescaler) {
+void pwm_init(uint8_t pwm, uint8_t prescaler) {
     uint8_t letterBits = (pwm & 0xF0);
     uint8_t idBits = (pwm & 0x0F);
 
@@ -17,13 +17,13 @@ void pwmInit(uint8_t pwm, uint8_t prescaler) {
                 case 0xA0: {
                     TCCR0A |= (1 << COM0A1);
                     OCR0A = 0;
-                    pinMode(D, 6, OUTPUT);
+                    pin_mode(D, 6, OUTPUT);
                     break;
                 }
                 case 0xB0: {
                     TCCR0A |= (1 << COM0B1);
                     OCR0B = 0;
-                    pinMode(D, 5, OUTPUT);
+                    pin_mode(D, 5, OUTPUT);
                     break;
                 }
             }
@@ -31,7 +31,7 @@ void pwmInit(uint8_t pwm, uint8_t prescaler) {
             break;
         }
 
-        case 0x01: {
+        /*case 0x01: {
             TCCR1B = 0; // stop timer
             TIFR1 = (7 << TOV1); // clear pending interrupts
             TCCR1A = (3 << WGM10);
@@ -40,13 +40,13 @@ void pwmInit(uint8_t pwm, uint8_t prescaler) {
                 case 0xA0: {
                     TCCR1A |= (1 << COM1A1);
                     OCR1A = 0;
-                    pinMode(B, 1, OUTPUT);
+                    pin_mode(B, 1, OUTPUT);
                     break;
                 }
                 case 0xB0: {
                     TCCR1A |= (1 << COM1B1);
                     OCR1B = 0;
-                    pinMode(B, 2, OUTPUT);
+                    pin_mode(B, 2, OUTPUT);
                     break;
                 }
             }
@@ -63,51 +63,52 @@ void pwmInit(uint8_t pwm, uint8_t prescaler) {
                 case 0xA0: {
                     TCCR2A |= (1 << COM2A1);
                     OCR2A = 0;
-                    pinMode(B, 3, OUTPUT);
+                    pin_mode(B, 3, OUTPUT);
                     break;
                 }
                 case 0xB0: {
                     TCCR2A |= (1 << COM2B1);
                     OCR2B = 0;
-                    pinMode(D, 3, OUTPUT);
+                    pin_mode(D, 3, OUTPUT);
                     break;
                 }
             }
             
             break;
-        }
+        }*/
     }
 }
 
-void pwmWrite(uint8_t pwm, float dutyCycle) {
+void pwm_write(uint8_t pwm, float dutyCycle) {
     switch(pwm) {
         case PWM_0A: {
-            OCR0A = clamp8(255 * dutyCycle, 0, 255);
+            OCR0A = clamp_8(255 * dutyCycle, 0, 255);
             break;
         }
 
-        case PWM_1A: {
-            OCR1A = clamp16(1023 * dutyCycle, 0, 1023);
-            break;
-        }
-
-        case PWM_2A: {
-            OCR2A = clamp8(255 * dutyCycle, 0, 255);
-            break;
-        }
         case PWM_0B: {
-            OCR0B = clamp8(255 * dutyCycle, 0, 255);
+            OCR0B = clamp_8(255 * dutyCycle, 0, 255);
+            break;
+        }
+        
+        /*case PWM_1A: {
+            OCR1A = clamp_16(1023 * dutyCycle, 0, 1023);
             break;
         }
 
         case PWM_1B: {
-            OCR1B = clamp16(1023 * dutyCycle, 0, 1023);
+            OCR1B = clamp_16(1023 * dutyCycle, 0, 1023);
+            break;
+        }
+
+        case PWM_2A: {
+            OCR2A = clamp_8(255 * dutyCycle, 0, 255);
             break;
         }
 
         case PWM_2B: {
-            OCR2B = clamp8(255 * dutyCycle, 0, 255);
+            OCR2B = clamp_8(255 * dutyCycle, 0, 255);
             break;
-        }
+        } */
     }
 }

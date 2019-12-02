@@ -16,6 +16,6 @@ void serial_send(uint8_t data);
 uint8_t serial_receive(void);
 uint8_t serial_receive_ready(void);
 
-void printf_init(void);
+void init_serial(void);
 
 #endif /* SERIAL_PRINTF_H_ */

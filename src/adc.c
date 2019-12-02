@@ -10,7 +10,7 @@ void init_adc() {
     DIDR0 |= 31; // Desativar buffer digital
 }
 
-uint16_t analogRead(uint8_t channel) {
+uint16_t analog_read(uint8_t channel) {
     ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
     ADCSRA |= (1 << ADSC);
 

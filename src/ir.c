@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -21,6 +22,9 @@
 #define RECEIVER_STATE_READING 1       // reading packet state
 #define RECEIVER_STATE_READY 2         // packet ready
 
+#define LISTENERS_SIZE 20
+
+static IR_Listener * listeners[LISTENERS_SIZE];
 
 static uint8_t receiver_state = RECEIVER_STATE_START_REPEAT; // initial state
 
@@ -215,7 +219,7 @@ void read_chunk() {
 // 0 - no, otherwise yes
 // received_packet is a pointer to the IR_Packet structure to receive the data
 // the packet updated only if the function result is not 0
-uint8_t check_new_packet(struct IR_Packet * received_packet) {
+uint8_t check_new_packet(IR_Packet * received_packet) {
 	if (receiver_state == RECEIVER_STATE_READY) {	
 		if (rec_ext_addr > 0) {
 			// extended NEC protocol, get 2 bytes address
@@ -247,7 +251,7 @@ ISR(INT0_vect) {
 	}
 
 	// read current signal edge
-	uint8_t rising_edge = digitalRead(D, 2);
+	uint8_t rising_edge = digital_read(D, 2);
 	
 	if (!rising_edge) {				
 		// STEP: 1	
@@ -303,10 +307,41 @@ ISR(TIMER1_COMPA_vect) {
 	}	
 }
 
+void ir_add_listener(IR_Packet_Code code, IR_Listener_Function function) {
+	static uint8_t listenerSize = 0;
+
+	IR_Listener * listener = (IR_Listener *) malloc(sizeof(IR_Listener));
+	listener->code = code;
+	listener->function = function;
+
+	listeners[listenerSize++] = listener;
+}
+
+void ir_run(void) {
+  	static IR_Packet received_packet;
+
+	cli();
+	uint8_t check_result = check_new_packet(&received_packet);
+	sei();
+
+    if(check_result) {
+		for(uint8_t i = 0; i < LISTENERS_SIZE; i++) {
+			IR_Listener * listener = listeners[i];
+
+			if(listener == NULL) {
+				break;
+			}
+
+			if(listener->code == received_packet.command) {
+				listener->function(received_packet);
+			}
+		}
+    }
+}
 
 void init_ir() {
     // interrupt 0
-    pinMode(D, 2, INPUT);
+    pin_mode(D, 2, INPUT);
 
     EICRA |= (1<<ISC00);
     EIMSK |= (1<<INT0);

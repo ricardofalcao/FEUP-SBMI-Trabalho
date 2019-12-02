@@ -31,7 +31,7 @@ int usart_putchar(char c, FILE *stream) {
 
 static FILE mystdout = FDEV_SETUP_STREAM(usart_putchar, NULL, _FDEV_SETUP_WRITE);
 
-void printf_init(void) {
+void init_serial(void) {
   usart_init();
   stdout = &mystdout;
 }
