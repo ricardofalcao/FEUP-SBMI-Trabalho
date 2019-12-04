@@ -6,15 +6,17 @@
 
 #define ADC_VOLTAGE_REF 5
 
-#define ADC_CHANNEL_0 0
-#define ADC_CHANNEL_1 1
-#define ADC_CHANNEL_2 2
-#define ADC_CHANNEL_3 3
-#define ADC_CHANNEL_4 4
-#define ADC_CHANNEL_5 5
+typedef enum Analog_Channel_t {
+	ADC_CHANNEL_0,
+	ADC_CHANNEL_1,
+	ADC_CHANNEL_2,
+	ADC_CHANNEL_3,
+	ADC_CHANNEL_4,
+	ADC_CHANNEL_5,
+} Analog_Channel; 
 
 void init_adc();
 
-uint16_t analogRead(uint8_t channel);
+uint16_t analog_read(Analog_Channel channel);
 
 #endif

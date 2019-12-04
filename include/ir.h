@@ -1,5 +1,5 @@
 #ifndef _IR_H
-#define _IRH 1
+#define _IR_H 1
 
 #include <stdio.h>
 #include "pins.h"
@@ -43,6 +43,6 @@ void init_ir(void);
 
 void ir_add_listener(IR_Packet_Code code, IR_Listener_Function function);
 
-void ir_run(void);
+IR_Packet ir_run(void);
 
 #endif

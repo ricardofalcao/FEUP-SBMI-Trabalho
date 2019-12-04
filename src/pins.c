@@ -1,7 +1,7 @@
 #include "pins.h"
 #include <avr/io.h>
 
-void pin_mode(uint8_t section, uint8_t pin, uint8_t mode) {
+void pin_mode(Pin_Section section, uint8_t pin, Pin_Mode mode) {
     switch(section) {
         case B: {
             if(mode == OUTPUT) {
@@ -35,7 +35,7 @@ void pin_mode(uint8_t section, uint8_t pin, uint8_t mode) {
     }
 }
 
-void digital_write(uint8_t section, uint8_t pin, uint8_t value) {
+void digital_write(Pin_Section section, uint8_t pin, Digital_State value) {
     switch(section) {
         case B: {
             if(value == LOW) {
@@ -69,7 +69,7 @@ void digital_write(uint8_t section, uint8_t pin, uint8_t value) {
     }
 }
 
-uint8_t digital_read(uint8_t section, uint8_t pin) {
+Digital_State digital_read(Pin_Section section, uint8_t pin) {
     switch(section) {
         case B: {
             if(PINB & (1 << pin)) {

@@ -3,20 +3,22 @@
 
 #include <stdio.h>
 
-#define B 0
-#define C 1
-#define D 2
+typedef enum Pin_Section_t {
+	B, C, D
+} Pin_Section;
 
-#define OUTPUT 1
-#define INPUT 0
+typedef enum Pin_Mode_t {
+	INPUT, OUTPUT
+} Pin_Mode;
 
-#define HIGH 1
-#define LOW 0
+typedef enum Digital_State_t {
+	LOW, HIGH
+} Digital_State;
 
-void pin_mode(uint8_t section, uint8_t pin, uint8_t mode);
+void pin_mode(Pin_Section section, uint8_t pin, Pin_Mode mode);
 
-void digital_write(uint8_t section, uint8_t pin, uint8_t value);
+void digital_write(Pin_Section section, uint8_t pin, Digital_State value);
 
-uint8_t digital_read(uint8_t section, uint8_t pin);
+Digital_State digital_read(Pin_Section section, uint8_t pin);
 
 #endif

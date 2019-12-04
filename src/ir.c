@@ -317,7 +317,7 @@ void ir_add_listener(IR_Packet_Code code, IR_Listener_Function function) {
 	listeners[listenerSize++] = listener;
 }
 
-void ir_run(void) {
+IR_Packet ir_run(void) {
   	static IR_Packet received_packet;
 
 	cli();
@@ -337,6 +337,8 @@ void ir_run(void) {
 			}
 		}
     }
+
+	return received_packet;
 }
 
 void init_ir() {
