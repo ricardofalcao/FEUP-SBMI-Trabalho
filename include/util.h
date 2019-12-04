@@ -5,6 +5,8 @@
 
 void init_util(void);
 
+uint16_t map(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
+
 uint16_t clamp_16(uint16_t value, uint16_t min, uint16_t max);
 
 uint8_t clamp_8(uint8_t value, uint8_t min, uint8_t max);

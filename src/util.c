@@ -23,6 +23,10 @@ void init_util(void) {
 	TCCR2B |= (1 << CS22); // prescaler 64
 }
 
+uint16_t map(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 uint16_t clamp_16(uint16_t value, uint16_t min, uint16_t max) {
     if(value > max) {
         value = max;
