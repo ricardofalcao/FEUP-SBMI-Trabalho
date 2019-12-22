@@ -15,5 +15,6 @@ float clamp_f(float value, float min, float max);
 
 uint64_t get_millis(void);
 
+float calculate_battery(uint16_t voltage, uint16_t min_voltage, uint16_t max_voltage);
 
 #endif

@@ -3,12 +3,15 @@
 
 #include <stdio.h>
 #include "pins.h"
+
 #include "lcd.h"
 
 void init_ui();
 
 void draw_battery(float battery);
 
-void draw_sensors(uint8_t mask);
+void draw_state(uint8_t state);
+
+void draw_sensors(uint8_t mask, float weighted_position);
 
 #endif

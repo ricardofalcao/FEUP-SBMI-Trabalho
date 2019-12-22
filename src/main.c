@@ -18,7 +18,10 @@
 
 #define CROSS_SECTION_NUM 4
 
-static Car_State state = IDLE;
+#define MAX_BATTERY_VOLTAGE 8300
+#define MIN_BATTERY_VOLTAGE 6400
+
+static Car_State state = AUTOMATIC;
 
 /*
   Automatic car variables
@@ -46,14 +49,15 @@ static uint8_t cross_section_decisions[CROSS_SECTION_NUM] = {
   Manual car variables
 */
 
-static float speed = 0.4f; // 0 - parado | 1 - velocidade máxima
+static float speed = 1.0f; // 0 - parado | 1 - velocidade máxima
 static float direction = 0.0f; // -1 esquerda | 0 - centro | 1 - direita
-static float directionStep = 0.8f;
+static float directionStep = 0.5f;
 
 static uint64_t last_direction_change_time = 0;
 
 /*
 */
+static uint64_t last_ui_update = 0;
 
 void init_USART(void) {
   UBRR0 = baudgen;
@@ -65,22 +69,22 @@ void init_hw(void) {
   pwm_init(PWM_0A, PRESCALER_64);
   pwm_init(PWM_0B, PRESCALER_64);
 
-  lcd_init(LCD_DISP_ON);
-
   sei();
 
-  pin_mode(B, 4, OUTPUT);
-  pin_mode(B, 3, OUTPUT);
-  pin_mode(B, 2, OUTPUT);
+  pin_mode(D, 7, OUTPUT); // C
+  pin_mode(D, 4, OUTPUT); // B
+  pin_mode(D, 3, OUTPUT); // A
 }
 
 uint16_t analog_mux_read(uint8_t channel) {
-  digital_write(B, 4, (channel & (1 << 0)));
-  digital_write(B, 3, (channel & (1 << 1)));
-  digital_write(B, 2, (channel & (1 << 2)));
+  digital_write(D, 3, (channel & (1 << 0)));
+  digital_write(D, 4, (channel & (1 << 1)));
+  digital_write(D, 7, (channel & (1 << 2)));
 
-  uint16_t value = analog_read(ADC_CHANNEL_0);
-  // value = analog_read(ADC_CHANNEL_0);
+  //_delay_ms(100);
+
+  uint16_t value = analog_read(ADC_CHANNEL_2);
+  //value = analog_read(ADC_CHANNEL_0);
   return value;
 }
 
@@ -97,6 +101,8 @@ void ir_listener_on_ok(IR_Packet packet) {
     } else if (state == MANUAL) {
       state = IDLE;
     }
+
+    draw_state(state);
   }
 }
 
@@ -130,10 +136,10 @@ void ir_listener_on_right(IR_Packet packet) {
 
 // 0 - Chão | 1 - Linha
 float read_sensor(Line_Sensor * sensor) {
-  uint16_t read = analog_mux_read(sensor->index);
+  uint16_t read = analog_mux_read(sensor->pin);
   float value = clamp_f( (float) (read - sensor->minimum_value) / (float) (sensor->maximum_value - sensor->minimum_value), 0.0f, 1.0f);
   
-  #if LINE_TYPE == 1 // white line
+  #if LINE_TYPE == 0 // white line
     return value;
   #else // black line
     return 1.0f - value;
@@ -144,7 +150,15 @@ int main(void) {
   // Initialization 
   for(uint8_t i = 0; i < SENSORS_NUM; i++) {
     sensors[i].index = i;
+    sensors[i].minimum_value = 40;
+    sensors[i].maximum_value = 500;
   }
+
+  sensors[0].pin = 6;
+  sensors[1].pin = 7;
+  sensors[2].pin = 5;
+  sensors[3].pin = 0;
+  sensors[4].pin = 3;
 
   init_USART();
   init_serial();
@@ -163,14 +177,23 @@ int main(void) {
   ir_add_listener(IR_LEFT, ir_listener_on_left);
   ir_add_listener(IR_RIGHT, ir_listener_on_right);
 
-  pwm_init(PWM_0A, PRESCALER_64); // Motor esquerdo
-  pwm_init(PWM_0B, PRESCALER_64); // Motor direito
+  pwm_init(PWM_0A, PRESCALER_8); // Motor esquerdo
+  pwm_init(PWM_0B, PRESCALER_8); // Motor direito
 
   sei();
 
+  draw_state(state);
+
   while(1) {
+
     uint64_t current_millis = get_millis();
     IR_Packet packet = ir_run();
+
+
+    uint16_t battery_read = analog_read(ADC_CHANNEL_1);
+    uint16_t voltage = battery_read / 1023.0f * 5000 * 2;
+    float battery = calculate_battery(voltage, MIN_BATTERY_VOLTAGE, MAX_BATTERY_VOLTAGE);
+    draw_battery(battery);
 
     if(state == MANUAL) {
       switch(packet.command) {
@@ -206,12 +229,12 @@ int main(void) {
           break; 
       }
 
-      if(current_millis - last_direction_change_time > 400) {
+      if(current_millis - last_direction_change_time > 150) {
         direction = 0.0f;
       } 
 
-      pwm_write(PWM_0A, speed * (direction < 0.0f ? 1.0f + direction : 1.0f));
-      pwm_write(PWM_0B, speed * (direction > 0.0f ? 1.0f - direction : 1.0f));
+      pwm_write(PWM_0B, speed * (direction < 0.0f ? 1.0f + direction : 1.0f));
+      pwm_write(PWM_0A, speed * (direction > 0.0f ? 1.0f - direction : 1.0f));
 
     } else if(state == AUTOMATIC) {
       float weighted_sum = 0.0f;
@@ -222,6 +245,7 @@ int main(void) {
       
       for(uint8_t i = 0; i < SENSORS_NUM; i++) {
         float value = read_sensor(&sensors[i]);
+
         float weight = i * 2.0f / (SENSORS_NUM - 1) - 1.0f;
 
         if (value >= LINE_THRESHOLD) { // Line detected
@@ -250,6 +274,7 @@ int main(void) {
         sum += value;
       }
 
+
       uint8_t old_detecting_cross_section = detecting_cross_section;
       
       if(detected_sensors > 2) {
@@ -272,19 +297,27 @@ int main(void) {
       // positivo significa que é preciso virar à direita
 
       if(pid_correction > 0) {
-        pwm_write(PWM_0A, 1.0f);
-        pwm_write(PWM_0B, clamp_f(1.0f - pid_correction, 0.0f, 1.0f));
+        pwm_write(PWM_0B, 1.0f);
+        pwm_write(PWM_0A, clamp_f(1.0f - pid_correction, 0.0f, 1.0f));
 
       } else {
-        pwm_write(PWM_0A, clamp_f(1.0f + pid_correction, 0.0f, 1.0f));
-        pwm_write(PWM_0B, 1.0f);
+        pwm_write(PWM_0B, clamp_f(1.0f + pid_correction, 0.0f, 1.0f));
+        pwm_write(PWM_0A, 1.0f);
 
       }
+
+
+      draw_sensors(0b00000000, current_line_position);
 
     } else if(state == IDLE) {
       pwm_write(PWM_0A, 0.0f);
       pwm_write(PWM_0B, 0.0f);
 
+    }
+
+    if(current_millis - last_ui_update > 100) {
+      last_ui_update = current_millis;
+      lcd_display();
     }
   }
 }

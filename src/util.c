@@ -66,3 +66,10 @@ uint64_t get_millis(void){
 
     return out;
 }
+
+float calculate_battery(uint16_t voltage, uint16_t minVoltage, uint16_t maxVoltage) {
+    voltage = clamp_16(voltage, minVoltage, maxVoltage);
+
+	float result = 1.05 - (1.05 / (1 + pow(1.724 * (voltage - minVoltage)/(maxVoltage - minVoltage), 5.5)));
+	return clamp_f(result, 0.0f, 1.0f);
+}
