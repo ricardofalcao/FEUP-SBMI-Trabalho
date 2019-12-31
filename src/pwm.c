@@ -36,12 +36,12 @@ void pwm_init(PWM_Channel pwm, PWM_Prescaler prescaler) {
 void pwm_write(PWM_Channel pwm, float dutyCycle) {
     switch(pwm) {
         case PWM_0A: {
-            OCR0A = clamp_8(255 * dutyCycle, 0, 255);
+            OCR0A = 255 * clamp_f(dutyCycle, 0.0f, 1.0f);
             break;
         }
 
         case PWM_0B: {
-            OCR0B = clamp_8(255 * dutyCycle, 0, 255);
+            OCR0B = 255 * clamp_f(dutyCycle, 0.0f, 1.0f);
             break;
         }
     }

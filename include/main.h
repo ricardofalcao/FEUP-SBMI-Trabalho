@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define SENSORS_NUM 5
+#define SENSORS_SAMPLES 4
 #define LINE_TYPE 0 // 0 - Black line on white floor | 1 - White line on black floor
 #define LINE_THRESHOLD 0.5
 

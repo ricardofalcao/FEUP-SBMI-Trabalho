@@ -43,6 +43,6 @@ void init_ir(void);
 
 void ir_add_listener(IR_Packet_Code code, IR_Listener_Function function);
 
-IR_Packet ir_run(void);
+IR_Packet * ir_run(void);
 
 #endif

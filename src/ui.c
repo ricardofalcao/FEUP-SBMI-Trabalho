@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "main.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define BATTERY_POSITION_X 58
 #define BATTERY_POSITION_Y 15
@@ -58,31 +59,20 @@ void draw_state(uint8_t state) {
     lcd_puts(str);
 }
 
+void draw_info(char *text) {
+    lcd_gotoxy(0, 5);
+    lcd_puts(text);
+}
+
 void draw_sensors(uint8_t mask, float weighted_position) {
     lcd_gotoxy(0, 4);
 
     lcd_puts("Sensores:");
 
-    lcd_drawRect(SENSORS_POSITION_X, SENSORS_POSITION_Y, SENSORS_POSITION_X + SENSORS_WIDTH, SENSORS_POSITION_Y + SENSORS_HEIGHT, WHITE);
-
-    uint8_t pixelsPerSensor = (SENSORS_WIDTH - 2) / SENSORS_NUM;
-
-    for(uint8_t i = 0; i < SENSORS_NUM; i++) {
-        uint8_t active = mask & (1 << i);
-
-        lcd_fillRect(
-            SENSORS_POSITION_X + 1 + pixelsPerSensor * i + (i > 0 ? 1 : 0), 
-            SENSORS_POSITION_Y + 1, 
-            SENSORS_POSITION_X + pixelsPerSensor * (i + 1) + 1, 
-            SENSORS_POSITION_Y + SENSORS_HEIGHT - 1, 
-            active ? BLACK : WHITE
-        );
-    }
-
     float x = SENSORS_POSITION_X + SENSORS_WIDTH * (weighted_position + 1.0f) / 2.0f;
 
-    lcd_fillRect(SENSORS_POSITION_X, SENSORS_POSITION_Y + SENSORS_HEIGHT + 3, SENSORS_POSITION_X + SENSORS_WIDTH, SENSORS_POSITION_Y + SENSORS_HEIGHT + 3 + 6, BLACK);
-    lcd_drawLine(x, SENSORS_POSITION_Y + SENSORS_HEIGHT + 3, x, SENSORS_POSITION_Y + SENSORS_HEIGHT + 3 + 6, WHITE);
+    lcd_fillRect(SENSORS_POSITION_X, SENSORS_POSITION_Y, SENSORS_POSITION_X + SENSORS_WIDTH, SENSORS_POSITION_Y + 6, BLACK);
+    lcd_drawLine(x, SENSORS_POSITION_Y, x, SENSORS_POSITION_Y + 6, WHITE);
 }
 
 /*

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -21,17 +22,23 @@
 #define MAX_BATTERY_VOLTAGE 8300
 #define MIN_BATTERY_VOLTAGE 6400
 
+#define MOTOR_MAX_TURN 1.0f
+
 static Car_State state = AUTOMATIC;
 
 /*
   Automatic car variables
 */
 
-static float Kp = 2; // proportional
+static float Kp = 0.5; // proportional
 
-static float Ki = 2; // integral
+static float Ki = 0; // integral
 
-static float Kd = 2; // derivative
+static float Kd = 0; // derivative
+
+static float Kr = 0; // reduction
+
+static float base_velocity = .6f;
 
 static Line_Sensor sensors[SENSORS_NUM];
 
@@ -66,8 +73,8 @@ void init_USART(void) {
 }
 
 void init_hw(void) {
-  pwm_init(PWM_0A, PRESCALER_64);
-  pwm_init(PWM_0B, PRESCALER_64);
+  pwm_init(PWM_0A, PRESCALER_8);
+  pwm_init(PWM_0B, PRESCALER_8);
 
   sei();
 
@@ -80,11 +87,9 @@ uint16_t analog_mux_read(uint8_t channel) {
   digital_write(D, 3, (channel & (1 << 0)));
   digital_write(D, 4, (channel & (1 << 1)));
   digital_write(D, 7, (channel & (1 << 2)));
-
-  //_delay_ms(100);
-
+  
   uint16_t value = analog_read(ADC_CHANNEL_2);
-  //value = analog_read(ADC_CHANNEL_0);
+  //value = analog_read(ADC_CHANNEL_2);
   return value;
 }
 
@@ -97,8 +102,8 @@ uint16_t analog_mux_read(uint8_t channel) {
 void ir_listener_on_ok(IR_Packet packet) {
   if(packet.repeat == 0) {
     if(state == IDLE) {
-      state = MANUAL;
-    } else if (state == MANUAL) {
+      state = AUTOMATIC;
+    } else {
       state = IDLE;
     }
 
@@ -107,25 +112,57 @@ void ir_listener_on_ok(IR_Packet packet) {
 }
 
 void ir_listener_on_up(IR_Packet packet) {
-  if(packet.repeat == 0) {
-    speed = clamp_f(speed + 0.25f, 0.0f, 1.0f);
+  if(state == MANUAL) {
+    if(packet.repeat == 0) {
+      speed = clamp_f(speed + 0.25f, 0.0f, 1.0f);
+    }
   }
 }
 
 void ir_listener_on_down(IR_Packet packet) {
-  if(packet.repeat == 0) {
-    speed = clamp_f(speed - 0.25f, 0.0f, 1.0f);
+  if(state == MANUAL) {
+    if(packet.repeat == 0) {
+      speed = clamp_f(speed - 0.25f, 0.0f, 1.0f);
+    }
   }
 }
 
 void ir_listener_on_left(IR_Packet packet) {
-  direction = - directionStep;
-  last_direction_change_time = get_millis();
+  if(state == MANUAL) {
+    direction = - directionStep;
+    last_direction_change_time = get_millis();
+  }
 }
 
 void ir_listener_on_right(IR_Packet packet) {
-  direction = directionStep;
-  last_direction_change_time = get_millis();
+  if(state == MANUAL) {
+    direction = directionStep;
+    last_direction_change_time = get_millis();
+  }
+}
+
+void ir_listener_on_1(IR_Packet packet) { // chao
+  if(state == AUTOMATIC) {
+    lcd_display();
+
+    printf("Chao\n");
+    for(uint8_t i = 0; i < SENSORS_NUM; i++) {
+      sensors[i].minimum_value = analog_mux_read(sensors[i].pin);
+      printf("%d - %d\n", i, sensors[i].minimum_value);
+    }
+    draw_info("C_Chao");
+  }
+}
+
+void ir_listener_on_2(IR_Packet packet) { // linha
+  if(state == AUTOMATIC) {
+
+    printf("Linha\n");
+    for(uint8_t i = 0; i < SENSORS_NUM; i++) {
+      sensors[i].maximum_value = analog_mux_read(sensors[i].pin);
+    }
+    draw_info("C_Linha");
+  }
 }
 
 /*
@@ -136,9 +173,18 @@ void ir_listener_on_right(IR_Packet packet) {
 
 // 0 - Chão | 1 - Linha
 float read_sensor(Line_Sensor * sensor) {
-  uint16_t read = analog_mux_read(sensor->pin);
-  float value = clamp_f( (float) (read - sensor->minimum_value) / (float) (sensor->maximum_value - sensor->minimum_value), 0.0f, 1.0f);
+  uint16_t read = 0;
+
+  for(uint8_t i = 0; i < SENSORS_SAMPLES; i++) {
+    read += analog_mux_read(sensor->pin);
+  }
+
+  read = read / SENSORS_SAMPLES;
+
+  float value = clamp_f( (float) ((int16_t) read - (int16_t) sensor->minimum_value) / (float) (sensor->maximum_value - sensor->minimum_value), 0.0f, 1.0f);
   
+  //printf("%d %d (%d) [%d-%d]\n", sensor->index, read, (uint8_t) (value * 100), sensor->minimum_value, sensor->maximum_value);
+
   #if LINE_TYPE == 0 // white line
     return value;
   #else // black line
@@ -177,6 +223,9 @@ int main(void) {
   ir_add_listener(IR_LEFT, ir_listener_on_left);
   ir_add_listener(IR_RIGHT, ir_listener_on_right);
 
+  ir_add_listener(IR_NUMBER_ONE, ir_listener_on_1);
+  ir_add_listener(IR_NUMBER_TWO, ir_listener_on_2);
+
   pwm_init(PWM_0A, PRESCALER_8); // Motor esquerdo
   pwm_init(PWM_0B, PRESCALER_8); // Motor direito
 
@@ -187,8 +236,42 @@ int main(void) {
   while(1) {
 
     uint64_t current_millis = get_millis();
-    IR_Packet packet = ir_run();
+    IR_Packet * packet = ir_run();
 
+    if(packet != NULL) {
+      switch(packet->command) {
+      case IR_NUMBER_FOUR: 
+        Kp += 0.01f;
+        break;
+      case IR_NUMBER_SEVEN: 
+        Kp -= 0.01f;
+        break;
+      case IR_NUMBER_FIVE: 
+        Ki += 0.01f;
+        break;
+      case IR_NUMBER_EIGHT: 
+        Ki -= 0.01f;
+        break;
+      case IR_NUMBER_SIX: 
+        Kd += 0.01f;
+        break;
+      case IR_NUMBER_NINE: 
+        Kd -= 0.01f;
+        break;
+      case IR_ASTERISK: 
+        base_velocity += 0.1f;
+        break;
+      case IR_HASHTAG: 
+        base_velocity -= 0.1f;
+        break;
+      case IR_NUMBER_THREE: 
+        Kr += 0.01f;
+        break;
+      case IR_NUMBER_ZERO: 
+        Kr -= 0.01f;
+        break;
+    }
+    }
 
     uint16_t battery_read = analog_read(ADC_CHANNEL_1);
     uint16_t voltage = battery_read / 1023.0f * 5000 * 2;
@@ -196,39 +279,6 @@ int main(void) {
     draw_battery(battery);
 
     if(state == MANUAL) {
-      switch(packet.command) {
-        case IR_NUMBER_ONE:
-          directionStep = 0.1f;
-          break; 
-        case IR_NUMBER_TWO:
-          directionStep = 0.2f;
-          break; 
-        case IR_NUMBER_THREE:
-          directionStep = 0.3f;
-          break; 
-        case IR_NUMBER_FOUR:
-          directionStep = 0.4f;
-          break; 
-        case IR_NUMBER_FIVE:
-          directionStep = 0.5f;
-          break; 
-        case IR_NUMBER_SIX:
-          directionStep = 0.6f;
-          break; 
-        case IR_NUMBER_SEVEN:
-          directionStep = 0.7f;
-          break; 
-        case IR_NUMBER_EIGHT:
-          directionStep = 0.8f;
-          break; 
-        case IR_NUMBER_NINE:
-          directionStep = 0.9f;
-          break; 
-        case IR_NUMBER_ZERO:
-          directionStep = 1.0f;
-          break; 
-      }
-
       if(current_millis - last_direction_change_time > 150) {
         direction = 0.0f;
       } 
@@ -246,13 +296,13 @@ int main(void) {
       for(uint8_t i = 0; i < SENSORS_NUM; i++) {
         float value = read_sensor(&sensors[i]);
 
-        float weight = i * 2.0f / (SENSORS_NUM - 1) - 1.0f;
+        float weight = (i + 1) * 1000;
 
         if (value >= LINE_THRESHOLD) { // Line detected
           detected_sensors++;
         }
 
-        if(detecting_cross_section) {
+        /*if(detecting_cross_section) {
           Cross_Section_Decision decision = cross_section_decisions[cross_section_index];
 
           // Já encontramos alguns sensores no lado esquerdo, e no "meio" não há nada
@@ -268,7 +318,7 @@ int main(void) {
 
             continue; 
           }
-        }
+        }*/
 
         weighted_sum += value * weight;
         sum += value;
@@ -290,24 +340,34 @@ int main(void) {
         }
       }
 
+      float pid_correction = 0.0f;
       last_line_position = current_line_position;
-      current_line_position = weighted_sum / sum; // Entre -1 e 1
-
-      float pid_correction = Kp * current_line_position + Ki * (last_line_position + current_line_position) + Kd * (current_line_position - last_line_position);
+      current_line_position = (weighted_sum / sum - 3000) / 2000.0; // Entre 1000 e 5000
+      
+      pid_correction =  Kp * current_line_position + 
+                              Ki * (last_line_position + current_line_position) + 
+                              Kd * (current_line_position - last_line_position);
       // positivo significa que é preciso virar à direita
 
-      if(pid_correction > 0) {
-        pwm_write(PWM_0B, 1.0f);
-        pwm_write(PWM_0A, clamp_f(1.0f - pid_correction, 0.0f, 1.0f));
+      float reduction = Kr * (fabs(last_line_position) + fabs(current_line_position));
 
-      } else {
-        pwm_write(PWM_0B, clamp_f(1.0f + pid_correction, 0.0f, 1.0f));
-        pwm_write(PWM_0A, 1.0f);
+      
+      pwm_write(PWM_0A, base_velocity - pid_correction - reduction);
+      pwm_write(PWM_0B, base_velocity + pid_correction - reduction);
 
-      }
-
-
+      char *text = calloc(sizeof(char), 16);
+      sprintf(text, "%.2f %.2f %.2f %.1f", Kp, Kd, Kr, base_velocity);
+      draw_info(text);
+      free(text);
+      
+      char *text2 = calloc(sizeof(char), 8);
+      sprintf(text2, "%.2f", pid_correction);
+      lcd_gotoxy(0, 6);
+      lcd_puts(text2);
+      free(text2);
+      
       draw_sensors(0b00000000, current_line_position);
+
 
     } else if(state == IDLE) {
       pwm_write(PWM_0A, 0.0f);
