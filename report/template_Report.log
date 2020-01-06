@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Arch Linux) (preloaded format=pdflatex 2019.11.25)  29 DEC 2019 19:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Arch Linux) (preloaded format=pdflatex 2019.11.25)  2 JAN 2020 13:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -321,27 +321,71 @@ File: imagens/atmega_flow.png Graphic file (type png)
 <use imagens/atmega_flow.png>
 Package pdftex.def Info: imagens/atmega_flow.png  used on input line 66.
 (pdftex.def)             Requested size: 142.26378pt x 220.02966pt.
- [2 <./imagens/atmega_flow.png>] (./template_Report.aux) ) 
+<imagens/line.png, id=22, 402.50375pt x 121.45375pt>
+File: imagens/line.png Graphic file (type png)
+<use imagens/line.png>
+Package pdftex.def Info: imagens/line.png  used on input line 99.
+(pdftex.def)             Requested size: 284.52756pt x 85.85469pt.
+ [2 <./imagens/atmega_flow.png> <./imagens/line.png>]
+<imagens/driver.png, id=31, 388.45125pt x 208.52907pt>
+File: imagens/driver.png Graphic file (type png)
+<use imagens/driver.png>
+Package pdftex.def Info: imagens/driver.png  used on input line 115.
+(pdftex.def)             Requested size: 227.62204pt x 122.19423pt.
+<imagens/real.png, id=32, 593.21625pt x 162.6075pt>
+File: imagens/real.png Graphic file (type png)
+<use imagens/real.png>
+Package pdftex.def Info: imagens/real.png  used on input line 127.
+(pdftex.def)             Requested size: 311.40698pt x 85.35826pt.
+<imagens/real_pid.png, id=33, 693.59125pt x 162.6075pt>
+File: imagens/real_pid.png Graphic file (type png)
+<use imagens/real_pid.png>
+Package pdftex.def Info: imagens/real_pid.png  used on input line 135.
+(pdftex.def)             Requested size: 364.09853pt x 85.35826pt.
+
+[3 <./imagens/driver.png (PNG copy)> <./imagens/real.png> <./imagens/real_pid.p
+ng>]
+LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 1
+57.
+ (/usr/share/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 157.
+<imagens/display.png, id=39, 668.4975pt x 394.47375pt>
+File: imagens/display.png Graphic file (type png)
+<use imagens/display.png>
+Package pdftex.def Info: imagens/display.png  used on input line 164.
+(pdftex.def)             Requested size: 113.81102pt x 67.15594pt.
+<imagens/comando.png, id=40, 264.23718pt x 563.85657pt>
+File: imagens/comando.png Graphic file (type png)
+<use imagens/comando.png>
+Package pdftex.def Info: imagens/comando.png  used on input line 173.
+(pdftex.def)             Requested size: 71.13188pt x 151.78731pt.
+ [4 <./imagens/display.png> <./imagens/comando.png (PNG copy)>] (./template_Rep
+ort.aux) ) 
 Here is how much of TeX's memory you used:
- 4561 strings out of 492167
- 66473 string characters out of 6131557
- 147379 words of memory out of 5000000
- 8844 multiletter control sequences out of 15000+600000
+ 4627 strings out of 492167
+ 67726 string characters out of 6131557
+ 148379 words of memory out of 5000000
+ 8903 multiletter control sequences out of 15000+600000
  14449 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 46i,7n,46p,369b,279s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/share/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmtt12.pfb>
-Output written on template_Report.pdf (3 pages, 143091 bytes).
+ 46i,7n,46p,558b,283s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
+r/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pf
+b></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmti10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
+t12.pfb>
+Output written on template_Report.pdf (5 pages, 1191594 bytes).
 PDF statistics:
- 52 PDF objects out of 1000 (max. 8388607)
- 33 compressed objects within 1 object stream
+ 80 PDF objects out of 1000 (max. 8388607)
+ 46 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 46 words of extra memory for PDF output out of 10000 (max. 10000000)
 

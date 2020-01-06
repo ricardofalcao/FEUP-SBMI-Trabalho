@@ -23,7 +23,7 @@ typedef enum Line_Sensor_Read_t {
 typedef struct Line_Sensor_t {
     uint8_t index;
     uint8_t pin;
-    uint16_t minimum_value ;
+    uint16_t minimum_value;
     uint16_t maximum_value;
 } Line_Sensor;
 

@@ -1,4 +1,4 @@
-update=dom 22 dez 2019 23:54:07 WET
+update=qui 02 jan 2020 12:10:26 WET
 version=1
 last_client=kicad
 [general]

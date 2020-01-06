@@ -1127,9 +1127,9 @@ Wire Wire Line
 Wire Wire Line
 	8300 4300 8300 4500
 Text GLabel 9100 4700 2    50   Input ~ 0
-MOTOR_ESQ
+MOTOR_ESQ+
 Text GLabel 9100 5000 2    50   Input ~ 0
-MOTOR_DIR
+MOTOR_DIR+
 Wire Wire Line
 	9100 5000 8900 5000
 Wire Wire Line
@@ -1244,4 +1244,16 @@ Wire Notes Line style solid
 	11200 500  500  500 
 Wire Notes Line style solid
 	7000 6500 7000 500 
+Text GLabel 7450 4700 0    50   Input ~ 0
+PD6
+Text GLabel 7450 5000 0    50   Input ~ 0
+PD5
+Text GLabel 9100 4800 2    50   Input ~ 0
+MOTOR_ESQ-
+Text GLabel 9100 5100 2    50   Input ~ 0
+MOTOR_DIR-
+Wire Wire Line
+	9100 4800 8900 4800
+Wire Wire Line
+	8900 5100 9100 5100
 $EndSCHEMATC
